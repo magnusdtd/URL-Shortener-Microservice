@@ -28,40 +28,46 @@ app.listen(port, function() {
 });
 
 
-const LoadAddSaveJsonObject = (action, newJsonObject) => {
-  let filePath = "./public/data.json";
-  if (!fs.existsSync(filePath)) {
-    fs.closeSync(fs.openSync(filePath, 'w'));
+const FILE_PATH = "./public/data.json";
+
+const LoadJsonObject = () => {
+  if (!fs.existsSync(FILE_PATH)) {
+    fs.closeSync(fs.openSync(FILE_PATH, 'w'));
   }
 
-  let fileData = fs.readFileSync(filePath);
-  
-  if (action == "Save new JSON Object" && newJsonObject != null) {
-    if (fileData.length == 0) {
-      fs.writeFileSync(filePath, JSON.stringify([newJsonObject], null, 2));
-    } 
-    else {
-      let existJsonObject = JSON.parse(fileData.toString());
-      let existOriginalURL = existJsonObject.map(obj => obj.original_url);
-      let isExist = existOriginalURL.includes(newJsonObject.original_url);     
-      if (!isExist) {
-        existJsonObject.push(newJsonObject);
-        fs.writeFileSync(filePath, JSON.stringify(existJsonObject, null, 2));
-      }
+  let fileData = fs.readFileSync(FILE_PATH);
+
+  if (fileData.length == 0) { 
+    return; 
+  }
+  else {
+    return JSON.parse(fileData);
+  }
+};
+
+const SaveJsonObject = (newJsonObject) => {
+  if (!fs.existsSync(FILE_PATH)) {
+    fs.closeSync(fs.openSync(FILE_PATH, 'w'));
+  }
+
+  let fileData = fs.readFileSync(FILE_PATH);
+
+  if (fileData.length == 0) {
+    fs.writeFileSync(FILE_PATH, JSON.stringify([newJsonObject], null, 2));
+  } 
+  else {
+    let existJsonObject = JSON.parse(fileData.toString());
+    let existOriginalURL = existJsonObject.map(obj => obj.original_url);
+    let isExist = existOriginalURL.includes(newJsonObject.original_url);     
+    if (!isExist) {
+      existJsonObject.push(newJsonObject);
+      fs.writeFileSync(FILE_PATH, JSON.stringify(existJsonObject, null, 2));
     }
   }
-  else if (action == "Load JSON objects" && newJsonObject == null) {
-    if (fileData.length == 0) { 
-      return; 
-    }
-    else {
-      return JSON.parse(fileData);
-    }
-  }
-}
+};
 
 const generateShortURL = () => {
-  const existJsonObject = LoadAddSaveJsonObject("Load JSON objects");
+  const existJsonObject = LoadJsonObject("Load JSON objects");
   
   const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   const length = 6;
@@ -109,7 +115,7 @@ app.post("/api/shorturl", (req, res) => {
     else {
       const newShortURL = generateShortURL();
       const newJsonObject = {original_url : inputURL, short_url : newShortURL};
-      LoadAddSaveJsonObject("Save new JSON Object", newJsonObject);
+      SaveJsonObject(newJsonObject);
       return res.json(newJsonObject);
     }
   });
@@ -117,7 +123,7 @@ app.post("/api/shorturl", (req, res) => {
 
 app.get("/api/shorturl/:shorturl", (req, res) => {
   const inputURL = req.params.shorturl;
-  const existJsonObject = LoadAddSaveJsonObject("Load JSON objects");
+  const existJsonObject = LoadJsonObject();
   const existShortURL = existJsonObject.map(obj => obj.short_url);
   const isExist = existShortURL.includes(inputURL);
 

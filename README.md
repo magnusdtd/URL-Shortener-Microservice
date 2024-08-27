@@ -75,5 +75,3 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Contact
 
 For any inquiries, please contact [my email](mailto:tdat0306@gmail.com).
-
-```
